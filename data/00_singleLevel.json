@@ -1,0 +1,12 @@
+[
+  {
+    "entity name": "entity 1",
+    "entity number": 3,
+    "entity type": "type 1"
+  },
+  {
+    "entity name": "entity 2",
+    "entity number": 2,
+    "entity type": "type 1"
+  }
+]
