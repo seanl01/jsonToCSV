@@ -15,7 +15,7 @@ const defaultFlattenObjOpts: FlattenObjOpts = {
   keyDelimiter: "_"
 }
 
-export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item | Item[] {
+export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item[] {
   let out: Item[] = []
 
   if (items instanceof Array) {
@@ -37,6 +37,12 @@ export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlat
       containsArrays = true
       const arr = items[key]
       out.push(obj) // push first object
+
+      if (arr.length === 0) {
+        out[0][key] = null
+        continue
+      }
+
       out[0][key] = arr[0]
 
       for (const arrItem of arr.slice(1)) {
@@ -47,7 +53,7 @@ export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlat
     }
   }
 
-  if (!containsArrays) return obj
+  if (!containsArrays) return [obj]
 
   // if you don't put it through flatten again, you might not end up fully flattening everything.
   return flatten(out.map(it => flatten(it)))
@@ -76,6 +82,7 @@ export function flattenObj(item: Item, opts: FlattenObjOpts = defaultFlattenObjO
     delete item[key] // remove original record
   }
 
+  // primitive
   return item
 }
 
@@ -88,15 +95,26 @@ function deepCopy(obj: Object) {
 }
 
 
-export function convertToString(instances: Input, delimiter: string = ","): string {
+export function convertToString(instances: Input, delimiter: string = ",", opts: FlattenObjOpts = defaultFlattenObjOpts): string {
+  if (instances.length === 0) return ""
+
   // any array we meet must have items of the same type
-  const flattenedArray: Item[] = convertToArray(instances)
-  const keys = Object.keys
+  const flattenedArray: Item[] = flatten(instances)
+  const keys = Object.keys(flattenedArray[0]).sort()
+
+  // add headers
+  const header = keys.join(delimiter) + "\n"
 
   const out = flattenedArray
-    .map(row => row.join(delimiter))
+    .map(row =>
+      keys.map(key => {
+        const item = row[key]
+        return (typeof item === "string") ? item.replace(",", "\,") : item
+      })
+        .join(delimiter)
+    )
     .join("\n")
 
   // if not empty, pad ending with \n
-  return (out == "") ? "" : out + "\n"
+  return (out == "") ? "" : (header + out) + "\n"
 }
