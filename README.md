@@ -1,15 +1,4 @@
 # jsontocsv
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.2.4. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+This library provides a function to flatten a complex list or object as you would find in JSON
+into a list of records

@@ -2,10 +2,6 @@
 type Item = { [key: string]: any } & Object
 type Input = Item[]
 
-// Unpack all the objects
-// Normalise all the row dictionaries
-//
-
 interface FlattenObjOpts {
   keyDelimiter: string
   maxLevel?: number
@@ -15,7 +11,7 @@ const defaultFlattenObjOpts: FlattenObjOpts = {
   keyDelimiter: "_"
 }
 
-export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item[] {
+export function flatten(items: Item[] | Item, _opts: FlattenObjOpts = defaultFlattenObjOpts): Item[] {
   let out: Item[] = []
 
   if (items instanceof Array) {
@@ -94,8 +90,7 @@ function deepCopy(obj: Object) {
   return JSON.parse(JSON.stringify(obj))
 }
 
-
-export function convertToString(instances: Input, delimiter: string = ",", opts: FlattenObjOpts = defaultFlattenObjOpts): string {
+export function convertToString(instances: Input, delimiter: string = ",", _opts: FlattenObjOpts = defaultFlattenObjOpts): string {
   if (instances.length === 0) return ""
 
   // any array we meet must have items of the same type
@@ -117,4 +112,27 @@ export function convertToString(instances: Input, delimiter: string = ",", opts:
 
   // if not empty, pad ending with \n
   return (out == "") ? "" : (header + out) + "\n"
+}
+
+export function* makeRowGenerator(instances: Input, delimiter: string = ",", _opts: FlattenObjOpts = defaultFlattenObjOpts): IterableIterator<string> {
+  if (instances.length === 0) yield ""
+
+  // any array we meet must have items of the same type
+  const flattenedArray: Item[] = flatten(instances)
+  const keys = Object.keys(flattenedArray[0]).sort()
+  const header = keys.join(delimiter) + "\n"
+
+  yield header
+
+
+  for (const row of flattenedArray) {
+    let out = keys.map(key => {
+      const item = row[key]
+      return (typeof item === "string") ? item.replace(",", "\,") : item
+    })
+      .join(delimiter)
+
+    out += "\n"
+    yield out;
+  }
 }

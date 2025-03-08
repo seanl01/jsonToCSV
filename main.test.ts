@@ -1,5 +1,5 @@
 import { test, describe, expect } from "bun:test"
-import { convertToString, flattenObj, flatten } from "./lib/convert"
+import { convertToString, flattenObj, flatten, makeRowGenerator } from "./lib/convert"
 
 test
 test("Test empty json", () => {
@@ -197,4 +197,20 @@ describe("flattenObj", () => {
       { id: 2, name: "Jane", age: 30, children_name: "Bob", children_age: 10, children_children_name: "Sydney", children_children_age: 12, children_children_hobbies: null }
     ])
   })
+
 })
+
+describe("makeRowGenerator", () => {
+  test("test row generator", () => {
+    let out = ""
+    const instances = [
+      { id: 1, name: "John", age: 25, hobbies: ["reading", "hiking"] },
+      { id: 2, name: "Jane", age: 30, hobbies: ["swimming", "kayaking"] }
+    ]
+    for (const row of makeRowGenerator(instances)) {
+      out += row
+    }
+
+    expect(out).toEqual("age,hobbies,id,name\n25,reading,1,John\n25,hiking,1,John\n30,swimming,2,Jane\n30,kayaking,2,Jane\n")
+  });
+});
