@@ -1,61 +1,82 @@
-type ArrayOutput = any[][]
 // operating under the assumption that each item in an array will be of the same type?
 type Item = { [key: string]: any } & Object
 type Input = Item[]
-type WriteContext = {
-  out: ArrayOutput;
-  headers: string[];
-  position: { index: number; key: string };
+
+// Unpack all the objects
+// Normalise all the row dictionaries
+//
+
+interface FlattenObjOpts {
+  keyDelimiter: string
+  maxLevel?: number
 }
 
-export function convertToArray(expr: Input): ArrayOutput {
-  const headers = Object.keys(expr[0])
-  const out = expr.map(row => {
-    return headers.map(header => row[header])
-  })
+const defaultFlattenObjOpts: FlattenObjOpts = {
+  keyDelimiter: "_"
+}
 
-  const context = {
-    out,
-    headers,
-    position: { index: 0, key: headers[0] }
+export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item | Item[] {
+  let out: Item[] = []
+
+  if (items instanceof Array) {
+    for (const item of items) {
+      out = out.concat(flatten(item))
+    }
+    return out
   }
 
-  // if (expr instanceof Object && !isEmpty(expr)) {
-  //   return unfoldObject(expr, context)
-  // }
+  // ELSE: one object
+  // flatten as per normal
+  const obj = flattenObj(items)
 
-  // else if (expr instanceof Array) {
-  //   return unfoldArray(expr, context).out
-  // }
+  let containsArrays = false
 
-  return context.out
-}
+  for (const key of Object.keys(obj)) {
+    // handle arrays
+    if (items[key] instanceof Array) {
+      containsArrays = true
+      const arr = items[key]
+      out.push(obj) // push first object
+      out[0][key] = arr[0]
 
-export function unfoldObject(expr: Item, context: WriteContext): ArrayOutput {
-  // need some way of storing whether the keys have been added/seen already.
-  // return out
-}
-
-export function unfoldArray(expr: any[], context: WriteContext): WriteContext {
-  const out = context.out
-  const colNo = context.headers.findIndex(v => v === context.position.key)
-  let index = context.position.index
-
-  const curRow = out[index]
-  curRow[colNo] = expr[0]
-
-  // unfold remaining items
-  for (const item of expr.slice(1)) {
-    const newRow = deepCopy(curRow)
-    // place item in correct pos
-    newRow[colNo] = item
-    out.splice(++index, 0, newRow)
+      for (const arrItem of arr.slice(1)) {
+        const itemToAdd = { ...items } // shallow Copy
+        itemToAdd[key] = arrItem
+        out.push(itemToAdd)
+      }
+    }
   }
 
-  // index of prev record
-  context.position.index = index;
+  if (!containsArrays) return obj
 
-  return context
+  // if you don't put it through flatten again, you might not end up fully flattening everything.
+  return flatten(out.map(it => flatten(it)))
+}
+
+export function flattenObj(item: Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item {
+  // empty object
+  if (isEmpty(item))
+    return item
+
+  for (const key of Object.keys(item)) {
+    if (item[key] instanceof Array)
+      continue
+
+    // ignore non object structures.
+    if (!(item[key] instanceof Object))
+      continue
+
+    const flattenItem = flattenObj(item[key])
+
+    for (const flatKey of Object.keys(flattenItem)) {
+      const newKey = `${key}${opts.keyDelimiter}${flatKey}`
+      item[newKey] = flattenItem[flatKey]
+    }
+
+    delete item[key] // remove original record
+  }
+
+  return item
 }
 
 function isEmpty(obj: Object) {
@@ -69,7 +90,8 @@ function deepCopy(obj: Object) {
 
 export function convertToString(instances: Input, delimiter: string = ","): string {
   // any array we meet must have items of the same type
-  const flattenedArray: ArrayOutput = convertToArray(instances)
+  const flattenedArray: Item[] = convertToArray(instances)
+  const keys = Object.keys
 
   const out = flattenedArray
     .map(row => row.join(delimiter))
