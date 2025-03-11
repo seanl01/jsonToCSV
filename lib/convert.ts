@@ -5,25 +5,27 @@ type Input = Item[]
 interface FlattenObjOpts {
   keyDelimiter: string
   maxLevel?: number
+  _level: number
 }
 
 const defaultFlattenObjOpts: FlattenObjOpts = {
-  keyDelimiter: "_"
+  keyDelimiter: "_",
+  _level: 0
 }
 
-export function flatten(items: Item[] | Item, _opts: FlattenObjOpts = defaultFlattenObjOpts): Item[] {
+export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item[] {
   let out: Item[] = []
 
   if (items instanceof Array) {
     for (const item of items) {
-      out = out.concat(flatten(item))
+      out = out.concat(flatten(item, opts))
     }
     return out
   }
 
   // ELSE: one object
   // flatten as per normal
-  const obj = flattenObj(items)
+  const obj = flattenObj(items, opts)
 
   let containsArrays = false
 
@@ -52,7 +54,8 @@ export function flatten(items: Item[] | Item, _opts: FlattenObjOpts = defaultFla
   if (!containsArrays) return [obj]
 
   // if you don't put it through flatten again, you might not end up fully flattening everything.
-  return flatten(out.map(it => flatten(it)))
+  return flatten(
+    out.map(it => flatten(it, opts)), opts)
 }
 
 export function flattenObj(item: Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item {
