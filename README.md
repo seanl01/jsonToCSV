@@ -10,9 +10,9 @@ This library relies on the observation that nested objects in JSON tend to grow 
 
 ```json
 [{
-  a: {
-    b: 1
-    c: 2
+  "a": {
+    "b": 1
+    "c": 2
   }
 }]
 ```
@@ -27,8 +27,8 @@ On the other hand, when dealing with arrays, the array is "unrolled" into separa
 
 ```json
 [{
-  a: [1, 2, 3]
-  b: "hello"
+  "a": [1, 2, 3]
+  "b": "hello"
 }]
 
 ```
