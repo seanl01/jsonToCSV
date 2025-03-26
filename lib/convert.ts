@@ -6,16 +6,30 @@ interface FlattenObjOpts {
   keyDelimiter: string
   maxLevel?: number
   _level: number
+  useCopy?: boolean
 }
 
 const defaultFlattenObjOpts: FlattenObjOpts = {
   keyDelimiter: "_",
-  _level: 0
+  _level: 0,
+  useCopy: false
 }
 
-export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item[] {
+export function flatten(items: Item[] | Item, opts: Partial<FlattenObjOpts> = {}): Item[] {
+  // Merge the provided options with default options
+  const mergedOpts: FlattenObjOpts = { ...defaultFlattenObjOpts, ...opts };
+
+  // If useCopy is enabled, create a deep copy of the items to avoid modifying the original data
+  const itemsToProcess = mergedOpts.useCopy ? structuredClone(items) : items;
+
+  // Call the internal flatten implementation with merged options
+  return _flattenInternal(itemsToProcess, mergedOpts);
+}
+
+function _flattenInternal(items: Item[] | Item, opts: FlattenObjOpts): Item[] {
   let out: Item[] = []
 
+  // for top level arrays
   if (items instanceof Array) {
     for (const item of items) {
       out = out.concat(flatten(item, opts)) // flatten arrays
@@ -30,7 +44,7 @@ export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlat
   let containsArrays = false
 
   for (const key of Object.keys(obj)) {
-    // handle arrays
+    // handle arrays within the object
     if (items[key] instanceof Array) {
       containsArrays = true
       const arr = items[key] // the item which is an array
@@ -51,9 +65,10 @@ export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlat
     }
   }
 
-  if (!containsArrays) return [obj]
+  if (!containsArrays) return [obj] // single record
 
   // if you don't put it through flatten again, you might not end up fully flattening everything.
+  // Example: You may have an array of arrays because of the flatten call on each item. You would still need to bring everything back to the top level.
   return flatten(
     out.map(it => flatten(it, opts)), opts)
 }
@@ -89,15 +104,14 @@ function isEmpty(obj: Object) {
   return Object.keys(obj).length === 0
 }
 
-function deepCopy(obj: Object) {
-  return JSON.parse(JSON.stringify(obj))
-}
-
-export function convertToString(instances: Input, delimiter: string = ",", _opts: FlattenObjOpts = defaultFlattenObjOpts): string {
+export function convertToString(instances: Input, delimiter: string = ",", _opts: Partial<FlattenObjOpts> = defaultFlattenObjOpts): string {
   if (instances.length === 0) return ""
 
+  const mergedOpts: FlattenObjOpts = { ...defaultFlattenObjOpts, ..._opts };
+  const itemsToProcess = mergedOpts.useCopy ? structuredClone(instances) : instances;
+
   // any array we meet must have items of the same type
-  const flattenedArray: Item[] = flatten(instances)
+  const flattenedArray: Item[] = flatten(itemsToProcess)
   const keys = Object.keys(flattenedArray[0]).sort()
 
   // add headers
@@ -107,7 +121,7 @@ export function convertToString(instances: Input, delimiter: string = ",", _opts
     .map(row =>
       keys.map(key => {
         const item = row[key]
-        return (typeof item === "string") ? item.replace(",", "\,") : item
+        return item
       })
         .map(escapeCsvValue)
         .join(delimiter)
@@ -132,7 +146,7 @@ export function* makeRowGenerator(instances: Input, delimiter: string = ",", _op
   for (const row of flattenedArray) {
     let csvRow = keys.map(key => {
       const item = row[key]
-      return (typeof item === "string") ? item.replace(",", "\,") : item
+      return item
     })
       .map(escapeCsvValue)
       .join(delimiter)
