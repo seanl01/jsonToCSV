@@ -1,5 +1,6 @@
-import { test, describe, expect, it } from "bun:test"
-import { convertToString, flattenObj, flatten, makeRowGenerator, escapeCsvValue } from "./lib/convert"
+import { test, describe, expect } from "vitest"
+import { convertToString, flatten, makeRowGenerator, escapeCsvValue } from "./lib/convert"
+import fs from "fs"
 
 test("Test empty json", () => {
   expect(
@@ -48,12 +49,12 @@ describe("Test json to array, non-nested", () => {
   ];
 
   test.each(testCases)("Test $name", async ({ input, output }) => {
-    const inputFile = Bun.file(input)
-    const outFile = Bun.file(output)
+    const inputData = fs.readFileSync(input, 'utf8');
+    const outData = fs.readFileSync(output, 'utf8');
 
-    const obj = await inputFile.json()
+    const obj = JSON.parse(inputData);
     const arr = convertToString(obj)
-    expect(arr).toEqual(await outFile.text())
+    expect(arr).toEqual(outData)
   })
 
 })

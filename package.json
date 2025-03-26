@@ -1,12 +1,23 @@
 {
-  "name": "jsontocsv",
+  "name": "@sean-lim/jsontocsv",
   "module": "index.ts",
+  "version": "1.0.0",
   "type": "module",
-  "private": true,
+  "main": "index.ts",
+  "description": "utility for turning complex JSON into CSV",
+  "author": "Sean Lim",
+  "repository": "https://github.com/seanl01/jsonToCSV",
+  "scripts": {
+    "test": "vitest main.test.ts"
+  },
+  "private": false,
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "vitest": "^3.0.9"
   }
 }
