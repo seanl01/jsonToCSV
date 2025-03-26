@@ -205,6 +205,24 @@ describe("flattenObj", () => {
 
 })
 
+test("can handle missing attributes", () => {
+  const input = [
+    { id: 1, name: "John", age: 25, hobbies: ["reading", "hiking"] },
+    { id: 2, name: "Jane", age: 30 },
+    { id: 3, name: "Bob", age: 20, children: [{ name: "Alice", age: 5 }, { name: "Bob", age: 10 }] },
+  ]
+
+  expect(flatten(structuredClone(input))).toStrictEqual([
+    { id: 1, name: "John", age: 25, hobbies: "reading" },
+    { id: 1, name: "John", age: 25, hobbies: "hiking" },
+    { id: 2, name: "Jane", age: 30 },
+    { id: 3, name: "Bob", age: 20, children_name: "Alice", children_age: 5 },
+    { id: 3, name: "Bob", age: 20, children_name: "Bob", children_age: 10 }
+  ])
+
+  expect(convertToString(input)).toEqual("age,hobbies,id,name\n25,reading,1,John\n25,hiking,1,John\n30,,2,Jane\n20,,3,Bob\n20,,3,Bob\n")
+})
+
 describe("makeRowGenerator", () => {
   test("test row generator", () => {
     let out = ""
