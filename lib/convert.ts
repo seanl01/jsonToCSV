@@ -18,7 +18,7 @@ export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlat
 
   if (items instanceof Array) {
     for (const item of items) {
-      out = out.concat(flatten(item, opts))
+      out = out.concat(flatten(item, opts)) // flatten arrays
     }
     return out
   }
@@ -33,19 +33,19 @@ export function flatten(items: Item[] | Item, opts: FlattenObjOpts = defaultFlat
     // handle arrays
     if (items[key] instanceof Array) {
       containsArrays = true
-      const arr = items[key]
+      const arr = items[key] // the item which is an array
       out.push(obj) // push first object
 
       if (arr.length === 0) {
-        out[0][key] = null
+        out[0][key] = null // empty cell
         continue
       }
 
-      out[0][key] = arr[0]
+      out[0][key] = arr[0] // first object value for that field is the first value of the array
 
       for (const arrItem of arr.slice(1)) {
-        const itemToAdd = { ...items } // shallow Copy
-        itemToAdd[key] = arrItem
+        const itemToAdd = { ...items } // shallow Copy of surrounding fields
+        itemToAdd[key] = arrItem // specific value for that row
         out.push(itemToAdd)
       }
     }
@@ -109,6 +109,7 @@ export function convertToString(instances: Input, delimiter: string = ",", _opts
         const item = row[key]
         return (typeof item === "string") ? item.replace(",", "\,") : item
       })
+        .map(escapeCsvValue)
         .join(delimiter)
     )
     .join("\n")
@@ -129,13 +130,27 @@ export function* makeRowGenerator(instances: Input, delimiter: string = ",", _op
 
 
   for (const row of flattenedArray) {
-    let out = keys.map(key => {
+    let csvRow = keys.map(key => {
       const item = row[key]
       return (typeof item === "string") ? item.replace(",", "\,") : item
     })
+      .map(escapeCsvValue)
       .join(delimiter)
 
-    out += "\n"
-    yield out;
+    csvRow += "\n"
+    yield csvRow;
   }
+}
+
+export function escapeCsvValue(value: any): string {
+  if (value === null || value === undefined) return '';
+
+  const stringValue = String(value);
+
+  // If the value contains delimiter, quotes, or newlines, wrap in quotes and escape any quotes
+  if (/[",\n\r]/.test(stringValue)) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+
+  return stringValue;
 }
