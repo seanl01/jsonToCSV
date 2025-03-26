@@ -1,7 +1,6 @@
 import { test, describe, expect, it } from "bun:test"
 import { convertToString, flattenObj, flatten, makeRowGenerator, escapeCsvValue } from "./lib/convert"
 
-test
 test("Test empty json", () => {
   expect(
     convertToString([])
@@ -239,13 +238,13 @@ describe("makeRowGenerator", () => {
 });
 
 describe("test escaping", () => {
-  it("should escape commas", () => {
+  test("should escape commas", () => {
     expect(escapeCsvValue("hello, bye")).toEqual('"hello, bye"')
   })
-  it("should escape double quotes", () => {
+  test("should escape double quotes", () => {
     expect(escapeCsvValue('hello "')).toEqual('"hello """')
   })
-  it("should escape newline chars", () => {
+  test("should escape newline chars", () => {
     expect(escapeCsvValue("hello\nbye")).toEqual('"hello\nbye"')
   })
 })
