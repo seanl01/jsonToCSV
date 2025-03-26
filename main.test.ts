@@ -1,5 +1,5 @@
-import { test, describe, expect } from "bun:test"
-import { convertToString, flattenObj, flatten, makeRowGenerator } from "./lib/convert"
+import { test, describe, expect, it } from "bun:test"
+import { convertToString, flattenObj, flatten, makeRowGenerator, escapeCsvValue } from "./lib/convert"
 
 test
 test("Test empty json", () => {
@@ -20,6 +20,11 @@ describe("Test json to array, non-nested", () => {
       name: "random test",
       input: "data/private/05_random.json",
       output: "data/private/05_random.csv",
+    },
+    {
+      name: "test with forbidden characters",
+      input: "data/01_forbidden.json",
+      output: "data/01_forbidden.csv"
     }
     // {
     //   name: "nested JSON flatten. Two level total",
@@ -214,3 +219,15 @@ describe("makeRowGenerator", () => {
     expect(out).toEqual("age,hobbies,id,name\n25,reading,1,John\n25,hiking,1,John\n30,swimming,2,Jane\n30,kayaking,2,Jane\n")
   });
 });
+
+describe("test escaping", () => {
+  it("should escape commas", () => {
+    expect(escapeCsvValue("hello, bye")).toEqual('"hello, bye"')
+  })
+  it("should escape double quotes", () => {
+    expect(escapeCsvValue('hello "')).toEqual('"hello """')
+  })
+  it("should escape newline chars", () => {
+    expect(escapeCsvValue("hello\nbye")).toEqual('"hello\nbye"')
+  })
+})
