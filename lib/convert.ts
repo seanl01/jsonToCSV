@@ -1,6 +1,5 @@
 // operating under the assumption that each item in an array will be of the same type?
 type Item = { [key: string]: any } & Object
-type Input = Item[]
 
 interface FlattenObjOpts {
   keyDelimiter: string
@@ -14,6 +13,16 @@ const defaultFlattenObjOpts: FlattenObjOpts = {
   _level: 0,
   useCopy: false
 }
+
+/**
+ * Flattens nested objects and arrays into a flat array of objects.
+ * This utility transforms complex nested structures into a single level
+ * array suitable for conversion to CSV format.
+ *
+ * @param items - The item or array of items to flatten
+ * @param opts - Options for controlling the flattening process
+ * @returns The flattened array of items
+ */
 
 export function flatten(items: Item[] | Item, opts: Partial<FlattenObjOpts> = {}): Item[] {
   // Merge the provided options with default options
@@ -104,14 +113,21 @@ function isEmpty(obj: Object) {
   return Object.keys(obj).length === 0
 }
 
-export function convertToString(instances: Input, delimiter: string = ",", _opts: Partial<FlattenObjOpts> = defaultFlattenObjOpts): string {
-  if (instances.length === 0) return ""
+/**
+* Converts JSON data to a CSV string.
+* @param json The JSON data to convert to CSV
+* @param delimiter The delimiter to use between fields
+* @param opts Options for controlling the conversion process
+* @returns
+*/
+export function convertToString(json: Item[] | Item, delimiter: string = ",", opts: Partial<FlattenObjOpts> = defaultFlattenObjOpts): string {
+  if (json.length === 0) return ""
 
-  const mergedOpts: FlattenObjOpts = { ...defaultFlattenObjOpts, ..._opts };
-  const itemsToProcess = mergedOpts.useCopy ? structuredClone(instances) : instances;
+  const mergedOpts: FlattenObjOpts = { ...defaultFlattenObjOpts, ...opts };
+  const itemsToProcess = mergedOpts.useCopy ? structuredClone(json) : json;
 
   // any array we meet must have items of the same type
-  const flattenedArray: Item[] = flatten(itemsToProcess)
+  const flattenedArray: Item[] = flatten(itemsToProcess, mergedOpts)
   const keys = Object.keys(flattenedArray[0]).sort()
 
   // add headers
@@ -132,11 +148,21 @@ export function convertToString(instances: Input, delimiter: string = ",", _opts
   return (out == "") ? "" : (header + out) + "\n"
 }
 
-export function* makeRowGenerator(instances: Input, delimiter: string = ",", _opts: FlattenObjOpts = defaultFlattenObjOpts): IterableIterator<string> {
-  if (instances.length === 0) yield ""
+/**
+* Returns a generator that returns CSV rows for the given JSON data.
+* @param json The JSON data to convert to CSV
+* @param delimiter The delimiter to use between fields
+* @param opts Options for controlling the conversion process
+*/
+
+export function* makeRowGenerator(json: Item[] | Item, delimiter: string = ",", opts: FlattenObjOpts = defaultFlattenObjOpts): IterableIterator<string> {
+  if (json.length === 0) yield ""
+
+  const mergedOpts: FlattenObjOpts = { ...defaultFlattenObjOpts, ...opts };
+  const itemsToProcess = mergedOpts.useCopy ? structuredClone(json) : json;
 
   // any array we meet must have items of the same type
-  const flattenedArray: Item[] = flatten(instances)
+  const flattenedArray: Item[] = flatten(itemsToProcess, mergedOpts)
   const keys = Object.keys(flattenedArray[0]).sort()
   const header = keys.join(delimiter) + "\n"
 
