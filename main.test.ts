@@ -1,6 +1,7 @@
 import { test, describe, expect } from "vitest"
 import { convertToString, flatten, makeRowGenerator, escapeCsvValue } from "./lib/convert"
 import fs from "fs"
+import { promises as fsp } from "fs"
 
 test("Test empty json", () => {
   expect(
@@ -248,4 +249,30 @@ describe("test escaping", () => {
   test("should escape newline chars", () => {
     expect(escapeCsvValue("hello\nbye")).toEqual('"hello\nbye"')
   })
+})
+
+test("writing to a file with row generator", async () => {
+  try {
+    fs.rmSync("output.csv", { force: true })
+    async function writeToFile(filename: string, generator: IterableIterator<string>) {
+      for (const row of generator) {
+        await fsp.appendFile(filename, row, "utf8")
+      }
+    }
+
+    const instances = [
+      { id: 1, name: "John", age: 25, hobbies: ["reading", "hiking"] },
+      { id: 2, name: "Jane", age: 30, hobbies: ["swimming", "kayaking"] }
+    ]
+
+    await writeToFile("output.csv", makeRowGenerator(instances))
+
+    const out = fs.readFileSync("output.csv", "utf8")
+    expect(out).toEqual("age,hobbies,id,name\n25,reading,1,John\n25,hiking,1,John\n30,swimming,2,Jane\n30,kayaking,2,Jane\n")
+  }
+
+  finally {
+    fs.rmSync("output.csv", { force: true })
+  }
+
 })

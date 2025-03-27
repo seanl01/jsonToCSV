@@ -1,11 +1,21 @@
 {
   "name": "@sean-lim/jsontocsv",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Sean Lim",
   "repository": {
     "type": "git",
     "url": "https://github.com/seanl01/jsonToCSV.git"
   },
+  "keywords": [
+    "json",
+    "csv",
+    "json-to-csv",
+    "json-to-csv-converter",
+    "json-to-csv-parser",
+    "json-to-csv-transformer",
+    "json-to-csv-utility",
+    "json-to-csv-generator"
+  ],
   "main": "index.ts",
   "module": "index.ts",
   "devDependencies": {
