@@ -239,6 +239,18 @@ describe("makeRowGenerator", () => {
   });
 });
 
+test("convertToString without flatten", () => {
+  const data = { id: 1, name: "John", age: 25, hobbies: ["reading", "hiking"] }
+
+  expect(() => {
+    convertToString(data, ",", { flatten: false })
+  }).toThrow()
+
+  expect(convertToString(flatten(data), ",", { flatten: false })).toEqual("age,hobbies,id,name\n25,reading,1,John\n25,hiking,1,John\n")
+
+  expect(convertToString(data, ",", { flatten: true })).toEqual("age,hobbies,id,name\n25,reading,1,John\n25,hiking,1,John\n")
+})
+
 describe("test escaping", () => {
   test("should escape commas", () => {
     expect(escapeCsvValue("hello, bye")).toEqual('"hello, bye"')

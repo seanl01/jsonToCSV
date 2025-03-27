@@ -8,12 +8,16 @@ This library provides a function to flatten a complex list or object as you woul
 npm i @sean-lim/jsontocsv
 ```
 
-Flatten JSON data into CSV friendly format (array of single-level objects) using `flatten`.
+Flatten JSON data into CSV friendly format (array of single-level objects) using `flatten`. The library also provides `convertToString` to convert the data into a CSV string, and `makeRowGenerator` to create a generator that yields rows of the CSV data. `convertToString` can also convert already flattened data into a CSV string if the `flatten` option is set to `false`.
 
 ### Primary methods
 
 ```typescript
-import { flatten, makeRowGenerator, converToString } from "@sean-lim/jsontocsv";
+import {
+  flatten,
+  makeRowGenerator,
+  convertToString,
+} from "@sean-lim/jsontocsv";
 
 const data = [
   {
@@ -39,8 +43,10 @@ const data = [
 const csv = flatten(data); // returns an array of single-level objects
 console.table(csv);
 
-const csvString = convertToString(csv); // Convert to CSV string
+const csvString = convertToString(data); // Convert to CSV string
 console.log(csvString);
+
+const preFlattened = convertToString(csv, ",", { flatten: false }); // Convert already flattened data to CSV string
 
 const rowGen = makeRowGenerator(csv); // creates a row generator
 ```
@@ -105,7 +111,7 @@ Would produce a table with three records, one for each element in the array `a`.
 
 Notice how the value of `b` is duplicated for each record. A combination of these two approaches is used to flatten even complex JSON objects into CSV format.
 
-### Approach
+## Approach
 
 The implementation approach assumes that each record provided has the same structure, though each record is allowed to be nested and complex. Structural recursion is used to traverse the object. An array of flattened objects (no nesting) is used to represent the output table.
 
@@ -113,7 +119,7 @@ A helper function `flattenObj` is used when an attribute is an object. It recurs
 
 The main function `flatten` is used to flatten the entire list of records. It unrolls arrays but creating a new record for each element in the array, making sure to call `flatten` recursively for each array item and duplicate the surrounding attributes for each record. Empty arrays are treated as missing values.
 
-### Limitations
+## Limitations
 
 - The structural recursion approach might not be the most efficient, as it requires a lot of copying of objects. However, it is simple and easy to understand.
 

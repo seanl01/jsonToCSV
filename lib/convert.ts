@@ -6,12 +6,14 @@ interface FlattenObjOpts {
   maxLevel?: number
   _level: number
   useCopy?: boolean
+  flatten: boolean
 }
 
 const defaultFlattenObjOpts: FlattenObjOpts = {
   keyDelimiter: "_",
   _level: 0,
-  useCopy: false
+  useCopy: true,
+  flatten: true
 }
 
 /**
@@ -127,7 +129,12 @@ export function convertToString(json: Item[] | Item, delimiter: string = ",", op
   const itemsToProcess = mergedOpts.useCopy ? structuredClone(json) : json;
 
   // any array we meet must have items of the same type
-  const flattenedArray: Item[] = flatten(itemsToProcess, mergedOpts)
+  let flattenedArray: Item[] = json as Item[]
+
+  if (mergedOpts.flatten) {
+    flattenedArray = flatten(itemsToProcess, mergedOpts)
+  }
+
   const keys = Object.keys(flattenedArray[0]).sort()
 
   // add headers
@@ -162,12 +169,16 @@ export function* makeRowGenerator(json: Item[] | Item, delimiter: string = ",", 
   const itemsToProcess = mergedOpts.useCopy ? structuredClone(json) : json;
 
   // any array we meet must have items of the same type
-  const flattenedArray: Item[] = flatten(itemsToProcess, mergedOpts)
+  let flattenedArray: Item[] = json as Item[]
+
+  if (mergedOpts.flatten) {
+    flattenedArray = flatten(itemsToProcess, mergedOpts)
+  }
+
   const keys = Object.keys(flattenedArray[0]).sort()
   const header = keys.join(delimiter) + "\n"
 
   yield header
-
 
   for (const row of flattenedArray) {
     let csvRow = keys.map(key => {
