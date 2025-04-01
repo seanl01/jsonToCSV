@@ -16,14 +16,17 @@
     "json-to-csv-utility",
     "json-to-csv-generator"
   ],
-  "main": "index.ts",
-  "module": "index.ts",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "^1.2.8",
+    "@types/node": "^22.13.16",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2",
     "vitest": "^3.0.9"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
   },
   "description": "utility for turning complex JSON into CSV",
   "private": false,

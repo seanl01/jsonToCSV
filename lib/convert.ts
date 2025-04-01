@@ -1,7 +1,7 @@
 // operating under the assumption that each item in an array will be of the same type?
-type Item = { [key: string]: any } & Object
+export type Item = { [key: string]: any } & Object
 
-interface FlattenObjOpts {
+export interface FlattenObjOpts {
   keyDelimiter: string
   maxLevel?: number
   _level: number
