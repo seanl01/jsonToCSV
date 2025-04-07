@@ -43,7 +43,7 @@ function _flattenInternal(items: Item[] | Item, opts: FlattenObjOpts): Item[] {
   // for top level arrays
   if (items instanceof Array) {
     for (const item of items) {
-      out = out.concat(flatten(item, opts)) // flatten arrays
+      out = out.concat(_flattenInternal(item, opts)) // flatten arrays
     }
     return out
   }
@@ -80,8 +80,8 @@ function _flattenInternal(items: Item[] | Item, opts: FlattenObjOpts): Item[] {
 
   // if you don't put it through flatten again, you might not end up fully flattening everything.
   // Example: You may have an array of arrays because of the flatten call on each item. You would still need to bring everything back to the top level.
-  return flatten(
-    out.map(it => flatten(it, opts)), opts)
+  return _flattenInternal(
+    out.map(it => _flattenInternal(it, opts)), opts)
 }
 
 export function flattenObj(item: Item, opts: FlattenObjOpts = defaultFlattenObjOpts): Item {
